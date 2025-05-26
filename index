@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dosage Antibiotiques - CrCl</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #007b83;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #007b83;
+      color: white;
+      border: none;
+      margin-top: 1.5rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005f63;
+    }
+
+    #result {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      color: #2c7a00;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #555;
+      text-align: center;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.3rem;
+      }
+
+      input, select, button {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ABC Réapoly Dosage ATB</h1>
+<h2>Dosage Antibiotiques</h2>
+
+    <label for="crcl">CrCl (mL/min)</label>
+    <input type="number" id="crcl" placeholder="Ex : 45" min="0">
+
+    <label for="antibiotic">Antibiotique</label>
+    <select id="antibiotic">
+      <option value="">-- Choisir --</option>
+      <option value="acyclovir_iv">Acyclovir (IV)</option>
+      <option value="acyclovir_po">Acyclovir (PO)</option>
+      <option value="amoxicillin">Amoxicillin</option>
+      <option value="augmentin">Amoxicillin/Clavulanate</option>
+      <option value="ampicillin">Ampicillin</option>
+      <option value="unasyn">Ampicillin/Sulbactam</option>
+      <option value="azithromycin">Azithromycin</option>
+      <option value="aztreonam">Aztreonam</option>
+      <option value="cefazolin">Cefazolin</option>
+      <option value="cefepime">Cefepime</option>
+      <option value="cefotaxime">Cefotaxime</option>
+      <option value="ceftriaxone">Ceftriaxone</option>
+      <option value="ceftazidime">Ceftazidime</option>
+      <option value="ciprofloxacin">Ciprofloxacin</option>
+      <option value="clindamycin">Clindamycin</option>
+      <option value="doxycycline">Doxycycline</option>
+      <option value="ertapenem">Ertapenem</option>
+      <option value="fluconazole">Fluconazole</option>
+      <option value="levofloxacin">Levofloxacin</option>
+      <option value="metronidazole">Metronidazole</option>
+      <option value="piperacillin">Piperacillin/Tazobactam</option>
+      <option value="tmp_smx">Trimethoprim/Sulfamethoxazole</option>
+      <option value="vancomycin">Vancomycin</option>
+    </select>
+
+    <button onclick="calculateDose()">Obtenir la dose</button>
+
+    <div id="result"></div>
+
+    <footer>
+      Source : SHC Antimicrobial Dosing Guide, Stanford Health Care (2025)<br>
+      <a href="https://med.stanford.edu/bugsanddrugs/guidebook.html" target="_blank">bugsanddrugs.stanford.edu</a>
+    </footer>
+  </div>
+
+  <script>
+    const dosingData = {
+      acyclovir_iv: [
+        { min: 50, dose: "5 mg/kg IV q8h" },
+        { min: 25, dose: "5 mg/kg IV q12h" },
+        { min: 10, dose: "5 mg/kg IV q24h" },
+        { min: 0, dose: "2.5 mg/kg IV q24h" }
+      ],
+      acyclovir_po: [
+        { min: 50, dose: "400 mg PO q8h" },
+        { min: 25, dose: "200 mg PO q8h" },
+        { min: 10, dose: "200 mg PO q12h" },
+        { min: 0, dose: "200 mg PO q12h" }
+      ],
+      amoxicillin: [
+        { min: 50, dose: "1000 mg PO q8h" },
+        { min: 10, dose: "500 mg PO q12h" },
+        { min: 0, dose: "500 mg PO q12h" }
+      ],
+      augmentin: [
+        { min: 30, dose: "875 mg PO q12h" },
+        { min: 10, dose: "500 mg PO q24h" },
+        { min: 0, dose: "500 mg PO q24h" }
+      ],
+      ampicillin: [
+        { min: 50, dose: "1–2 g IV q6h" },
+        { min: 10, dose: "1 g IV q12h" },
+        { min: 0, dose: "1 g IV q12h" }
+      ],
+      unasyn: [
+        { min: 30, dose: "3 g IV q6h" },
+        { min: 15, dose: "3 g IV q12h" },
+        { min: 0, dose: "3 g IV q24h" }
+      ],
+      azithromycin: [
+        { min: 0, dose: "500 mg IV/PO q24h (pas d'ajustement)" }
+      ],
+      aztreonam: [
+        { min: 30, dose: "2 g IV q8h" },
+        { min: 10, dose: "1 g IV q12h" },
+        { min: 0, dose: "1 g IV q24h" }
+      ],
+      cefazolin: [
+        { min: 35, dose: "2 g IV q8h" },
+        { min: 10, dose: "2 g IV q12h" },
+        { min: 0, dose: "2 g IV q24h" }
+      ],
+      cefepime: [
+        { min: 60, dose: "2 g IV q8h" },
+        { min: 30, dose: "2 g IV q12h" },
+        { min: 10, dose: "1 g IV q24h" },
+        { min: 0, dose: "500 mg IV q24h" }
+      ],
+      cefotaxime: [
+        { min: 50, dose: "1–2 g IV q8h" },
+        { min: 10, dose: "1 g IV q12–24h" },
+        { min: 0, dose: "0.5–1 g IV q24h" }
+      ],
+      ceftriaxone: [
+        { min: 0, dose: "1–2 g IV q24h (pas d'ajustement)" }
+      ],
+      ceftazidime: [
+        { min: 30, dose: "2 g IV q12h" },
+        { min: 10, dose: "1 g IV q24h" },
+        { min: 0, dose: "0.5–1 g IV q24–48h" }
+      ],
+      ciprofloxacin: [
+        { min: 50, dose: "400 mg IV q12h" },
+        { min: 30, dose: "400 mg IV q24h" },
+        { min: 0, dose: "400 mg IV q24h (après dialyse)" }
+      ],
+      clindamycin: [
+        { min: 0, dose: "600–900 mg IV q8h / 150–450 mg PO q6h (pas d'ajustement)" }
+      ],
+      doxycycline: [
+        { min: 0, dose: "100 mg IV/PO q12h (pas d'ajustement)" }
+      ],
+      ertapenem: [
+        { min: 30, dose: "1 g IV q24h" },
+        { min: 0, dose: "500 mg IV q24h" }
+      ],
+      fluconazole: [
+        { min: 50, dose: "400 mg IV/PO q24h" },
+        { min: 10, dose: "200 mg q24h" },
+        { min: 0, dose: "200 mg q48h (ou post-dialyse)" }
+      ],
+      levofloxacin: [
+        { min: 50, dose: "750 mg PO/IV q24h" },
+        { min: 20, dose: "500 mg PO/IV q48h" },
+        { min: 0, dose: "500 mg q48h (après dialyse)" }
+      ],
+      metronidazole: [
+        { min: 0, dose: "500 mg IV/PO q8h (pas d'ajustement)" }
+      ],
+      piperacillin: [
+        { min: 40, dose: "3.375–4.5 g IV q6–8h (infusion prolongée)" },
+        { min: 20, dose: "2.25–3.375 g IV q8–12h" },
+        { min: 0, dose: "2.25 g IV q12h" }
+      ],
+      tmp_smx: [
+        { min: 30, dose: "Dose normale" },
+        { min: 15, dose: "50% dose normale" },
+        { min: 0, dose: "25–50% dose normale q24h" }
+      ],
+      vancomycin: [
+        { min: 50, dose: "15 mg/kg IV q12h" },
+        { min: 20, dose: "15 mg/kg IV q24h" },
+        { min: 0, dose: "15 mg/kg après suivi des niveaux" }
+      ]
+    };
+
+    function calculateDose() {
+      const crcl = parseFloat(document.getElementById('crcl').value);
+      const antibiotic = document.getElementById('antibiotic').value;
+      const resultDiv = document.getElementById('result');
+
+      if (!antibiotic || isNaN(crcl)) {
+        resultDiv.textContent = "Veuillez entrer une CrCl et choisir un antibiotique.";
+        return;
+      }
+
+      const profile = dosingData[antibiotic];
+      const dose = profile.find(p => crcl >= p.min);
+      resultDiv.textContent = `Dose recommandée : ${dose.dose}`;
+    }
+  </script>
+</body>
+</html>
